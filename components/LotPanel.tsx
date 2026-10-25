@@ -1,30 +1,52 @@
 "use client";
 
+import type { User } from "@supabase/supabase-js";
 import type { Lot } from "@/lib/lots";
+
+type Props = {
+  lot: Lot;
+  user: User | null;
+  accountsEnabled: boolean;
+  onClose: () => void;
+  onPlay: () => void;
+  onLogin: () => void;
+  onRent: () => void;
+  onEdit: () => void;
+  onRelease: () => void;
+};
+
+const mainBtn =
+  "mt-4 w-full rounded-xl bg-gradient-to-r from-amber-300 to-amber-400 py-3 text-lg font-bold text-neutral-900 shadow-sm transition hover:brightness-95";
+const softBtn =
+  "flex-1 rounded-lg border border-black/15 bg-white py-2 text-sm font-medium hover:bg-neutral-50";
 
 export default function LotPanel({
   lot,
+  user,
+  accountsEnabled,
   onClose,
   onPlay,
-}: {
-  lot: Lot;
-  onClose: () => void;
-  onPlay: () => void;
-}) {
+  onLogin,
+  onRent,
+  onEdit,
+  onRelease,
+}: Props) {
   const winRate = lot.plays ? Math.round((lot.wins / lot.plays) * 100) : 0;
+  const isOwner = !!user && lot.ownerId === user.id;
 
-  const action =
-    lot.kind === "web"
-      ? { label: "▶ Play", run: onPlay }
-      : lot.kind === "external"
-        ? {
-            label: `↗ ${lot.externalLabel ?? "Buka game"}`,
-            run: () => window.open(lot.externalUrl!, "_blank", "noopener,noreferrer"),
-          }
-        : null;
+  let primary: { label: string; run: () => void } | null = null;
+  if (lot.kind === "web") primary = { label: "▶ Play", run: onPlay };
+  else if (lot.kind === "external") {
+    primary = {
+      label: `↗ ${lot.externalLabel ?? "Buka game"}`,
+      run: () => {
+        if (lot.externalUrl) window.open(lot.externalUrl, "_blank", "noopener,noreferrer");
+      },
+    };
+  }
 
   return (
-    <aside className="absolute bottom-4 right-4 top-4 z-20 w-[340px] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-black/10 bg-white/90 p-5 shadow-xl backdrop-blur">
+    <aside className="absolute bottom-4 right-4 top-16 z-20 w-[340px] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-black/10 bg-white/90 p-5 shadow-xl backdrop-blur">
       <div className="flex items-start justify-between gap-3">
         <p className="text-[11px] tracking-[0.18em] text-neutral-500">
           LOT #{lot.id} · {lot.tier}
@@ -48,27 +70,59 @@ export default function LotPanel({
         <img
           src={lot.posterUrl}
           alt={`Poster ${lot.title}`}
+          referrerPolicy="no-referrer"
           className="mt-3 w-full rounded-xl border border-black/10"
         />
       )}
 
-      {action ? (
+      {primary && (
         <button
           onClick={(e) => {
             e.currentTarget.blur();
-            action.run();
+            primary.run();
           }}
-          className="mt-4 w-full rounded-xl bg-gradient-to-r from-amber-300 to-amber-400 py-3 text-lg font-bold text-neutral-900 shadow-sm transition hover:brightness-95"
+          className={mainBtn}
         >
-          {action.label}
+          {primary.label}
         </button>
-      ) : (
-        <button
-          disabled
-          className="mt-4 w-full cursor-not-allowed rounded-xl border border-black/10 bg-neutral-100 py-3 text-base font-semibold text-neutral-400"
-        >
-          Sewa lahan · segera hadir
-        </button>
+      )}
+
+      {lot.kind === "empty" &&
+        (!accountsEnabled ? (
+          <button disabled className={`${mainBtn} cursor-not-allowed opacity-40`}>
+            Sewa lahan · belum aktif
+          </button>
+        ) : user ? (
+          <button
+            onClick={(e) => {
+              e.currentTarget.blur();
+              onRent();
+            }}
+            className={mainBtn}
+          >
+            Sewa lahan ini
+          </button>
+        ) : (
+          <button
+            onClick={(e) => {
+              e.currentTarget.blur();
+              onLogin();
+            }}
+            className={mainBtn}
+          >
+            Masuk untuk menyewa
+          </button>
+        ))}
+
+      {isOwner && (
+        <div className="mt-3 flex gap-2">
+          <button onClick={onEdit} className={softBtn}>
+            Ubah
+          </button>
+          <button onClick={onRelease} className={`${softBtn} text-red-600`}>
+            Lepas lahan
+          </button>
+        </div>
       )}
 
       <p className="mt-4 text-sm leading-relaxed text-neutral-600">{lot.description}</p>

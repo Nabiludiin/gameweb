@@ -1,16 +1,34 @@
 "use client";
 
-import { Suspense, useState, type RefObject } from "react";
+import { Suspense, useEffect, useState, type RefObject } from "react";
 import * as THREE from "three";
-import { Edges, Html, useTexture } from "@react-three/drei";
+import { Edges, Html } from "@react-three/drei";
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
-import { LOTS, type Lot } from "@/lib/lots";
+import type { Lot } from "@/lib/lots";
 
 const NO_RAYCAST = () => null;
 
 // poster di dinding lot bertipe eksternal
 function Poster({ lot }: { lot: Lot }) {
-  const tex = useTexture(lot.posterUrl!);
+  const [tex, setTex] = useState<THREE.Texture | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    new THREE.TextureLoader().load(
+      lot.posterUrl!,
+      (t) => {
+        t.colorSpace = THREE.SRGBColorSpace;
+        if (!cancelled) setTex(t);
+      },
+      undefined,
+      () => {} // gagal dimuat (mis. server poster tidak mengizinkan): diabaikan
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [lot.posterUrl]);
+
+  if (!tex) return null;
   const size = Math.max(3, Math.min(lot.w - 2, lot.h - 4, 12));
   return (
     <mesh position={[0, -lot.h / 2 + size / 2 + 2, lot.d / 2 + 0.06]} raycast={NO_RAYCAST}>
@@ -27,10 +45,12 @@ function labelOf(lot: Lot) {
 }
 
 export default function Lots({
+  lots,
   groupRef,
   selectedId,
   onSelect,
 }: {
+  lots: Lot[];
   groupRef: RefObject<THREE.Group | null>;
   selectedId: number | null;
   onSelect: (lot: Lot) => void;
@@ -41,7 +61,7 @@ export default function Lots({
     <>
       {/* dekorasi tanpa tabrakan: alas berwarna dan sinar vertikal */}
       <group>
-        {LOTS.map((lot) => (
+        {lots.map((lot) => (
           <group key={`deco-${lot.id}`}>
             <mesh rotation-x={-Math.PI / 2} position={[lot.x, 0.05, lot.z]} raycast={NO_RAYCAST}>
               <planeGeometry args={[lot.w + 4, lot.d + 4]} />
@@ -72,7 +92,7 @@ export default function Lots({
 
       {/* gedung lot (padat, ikut dipakai kamera untuk deteksi penghalang) */}
       <group ref={groupRef}>
-        {LOTS.map((lot) => {
+        {lots.map((lot) => {
           const isSelected = selectedId === lot.id;
           const active = hovered === lot.id || isSelected;
           const filled = lot.kind !== "empty";

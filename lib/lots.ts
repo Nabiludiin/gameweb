@@ -17,6 +17,7 @@ export type Lot = {
   externalLabel: string | null;
   posterUrl: string | null;
   color: string;
+  ownerId?: string;
   x: number;
   z: number;
   w: number;
@@ -147,4 +148,49 @@ export function isInsideLot(x: number, y: number, z: number, margin = 0) {
     }
   }
   return false;
+}
+
+export type Claim = {
+  lot_id: number;
+  owner_id: string;
+  owner_name: string;
+  kind: "web" | "external";
+  title: string;
+  description: string;
+  game_url: string | null;
+  external_url: string | null;
+  external_label: string | null;
+  poster_url: string | null;
+  updated_at: string;
+};
+
+export function isHttpsUrl(value: string) {
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+// gabungkan lot dasar (dari kode) dengan data sewa dari database
+export function mergeLots(claims: Claim[]): Lot[] {
+  const byId = new Map<number, Claim>(claims.map((c) => [c.lot_id, c] as const));
+  return LOTS.map((base) => {
+    const c = byId.get(base.id);
+    if (!c || base.kind !== "empty") return base; // lot demo tidak bisa ditimpa
+    const web = c.kind === "web";
+    return {
+      ...base,
+      kind: c.kind,
+      title: c.title,
+      description: c.description || "Belum ada deskripsi.",
+      owner: c.owner_name,
+      ownerId: c.owner_id,
+      updated: new Date(c.updated_at).toLocaleDateString("id-ID", { day: "numeric", month: "short" }),
+      gameUrl: web && c.game_url && isHttpsUrl(c.game_url) ? c.game_url : null,
+      externalUrl: !web && c.external_url && isHttpsUrl(c.external_url) ? c.external_url : null,
+      externalLabel: web ? null : c.external_label,
+      posterUrl: c.poster_url && isHttpsUrl(c.poster_url) ? c.poster_url : null,
+    };
+  });
 }
