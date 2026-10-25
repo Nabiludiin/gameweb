@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Klik Cepat</title>
+  <style>
+    [hidden] { display: none !important; }
+    html, body { margin: 0; height: 100%; background: #f3f3f2; font-family: system-ui, sans-serif; overflow: hidden; }
+    #hud { position: fixed; top: 12px; left: 16px; font-weight: 700; letter-spacing: .08em; }
+    #target { position: absolute; width: 56px; height: 56px; border: 3px solid #111; background: #b8ff3d; cursor: pointer; }
+    #target:active { transform: scale(.9); }
+    #msg { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; font-size: 22px; }
+    button { padding: 12px 28px; border: 0; border-radius: 12px; background: #fbbf24; font-weight: 700; font-size: 18px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div id="hud">SKOR 0 · 20 dtk</div>
+  <div id="target" hidden></div>
+  <div id="msg">
+    <div>
+      <p>Klik kotak hijau sebanyak mungkin dalam 20 detik!</p>
+      <button id="start">Mulai</button>
+    </div>
+  </div>
+  <script>
+    const hud = document.getElementById("hud");
+    const target = document.getElementById("target");
+    const msg = document.getElementById("msg");
+    const start = document.getElementById("start");
+    let score = 0, time = 20, timer;
+
+    function move() {
+      target.style.left = Math.random() * (innerWidth - 80) + "px";
+      target.style.top = 50 + Math.random() * (innerHeight - 140) + "px";
+    }
+    function render() { hud.textContent = "SKOR " + score + " · " + time + " dtk"; }
+    function end() {
+      clearInterval(timer);
+      target.hidden = true;
+      msg.hidden = false;
+      msg.querySelector("p").textContent = "Waktu habis! Skor kamu: " + score;
+      start.textContent = "Main lagi";
+    }
+    start.onclick = () => {
+      score = 0; time = 20;
+      msg.hidden = true; target.hidden = false;
+      move(); render();
+      timer = setInterval(() => { time--; render(); if (time <= 0) end(); }, 1000);
+    };
+    target.onclick = () => { score++; move(); render(); };
+  </script>
+</body>
+</html>

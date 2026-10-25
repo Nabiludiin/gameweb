@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff4fa3"/>
+      <stop offset="1" stop-color="#8b5cff"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="800" fill="url(#bg)"/>
+  <text x="300" y="150" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="78" font-weight="900" fill="#ffffff" stroke="#111111" stroke-width="4">BRICK</text>
+  <text x="300" y="235" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="78" font-weight="900" fill="#ffffff" stroke="#111111" stroke-width="4">BUILDER</text>
+  <g stroke="#111111" stroke-width="6" stroke-linejoin="round">
+    <rect x="215" y="352" width="40" height="26" rx="6" fill="#ffd54a"/>
+    <rect x="280" y="352" width="40" height="26" rx="6" fill="#ffd54a"/>
+    <rect x="345" y="352" width="40" height="26" rx="6" fill="#ffd54a"/>
+    <rect x="190" y="378" width="220" height="100" rx="8" fill="#ffd54a"/>
+    <rect x="130" y="478" width="340" height="100" rx="8" fill="#00b8e6"/>
+    <rect x="160" y="578" width="280" height="100" rx="8" fill="#8fe000"/>
+  </g>
+  <text x="300" y="750" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#ffffff" letter-spacing="4">TERSEDIA DI STEAM</text>
+</svg>
